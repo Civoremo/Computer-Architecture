@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "dispatch.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,7 +76,19 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   switch (op) {
     case ALU_MUL:
       // TODO
-      cpu->registers[regA] *= cpu->registers[regB];
+      alu_Mult(cpu, regA, regB);
+      break;
+
+    case ALU_DIV:
+      alu_Div(cpu, regA, regB);
+      break;
+
+    case ALU_ADD:
+      alu_Add(cpu, regA, regB);
+      break;
+
+    case ALU_SUB:
+      alu_Sub(cpu, regA, regB);
       break;
 
     // TODO: implement more ALU ops
@@ -101,7 +114,6 @@ void trace(struct cpu *cpu)
 
     printf("\n");
 }
-
 
 /**
  * Run the CPU
@@ -129,10 +141,6 @@ void cpu_run(struct cpu *cpu)
     // operand = 2
 
     // trace(cpu);
-
-    // printf("OPERAND: %d\n", operands);
-    // printf("OPERAND2: %d\n", operands2);
-    // printf("CurrentInst: %d\n", current_inst);
     
     switch (current_inst) {
       case HLT:
@@ -141,23 +149,26 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case LDI:
-        // printf("LDI\n");
-        // cpu_ram_write(cpu, operandA, operandB);
-        cpu->registers[operandA] = operandB;
-        // cpu->registers[cpu_ram_read(cpu, (cpu->PC + 1))] = cpu_ram_read(cpu, (cpu->PC + 2));
+        // cpu->registers[operandA] = operandB;
+        inst_LDI(cpu, operandA, operandB);
         break;
 
       case PRN:
-        // printf("PRINT\n");
-        printf("%d\n", cpu->registers[operandA]);
-        // printf("TESTL %d\n", cpu->ram[test]);
-        // printf("%d\n", cpu->registers[cpu_ram_read(cpu, cpu->PC + 1)]);
+        // printf("%d\n", cpu->registers[operandA]);
+        inst_PRN(cpu, operandA);
         break;
 
       case MUL:
-        // printf("%d\n", cpu->registers[operandA]);
-        // printf("%d\n", cpu->registers[operandB]);
         alu(cpu, ALU_MUL, operandA, operandB);
+        // inst_MUL(cpu, operandA, operandB);
+        break;
+
+      case PUSH:
+        printf("PUSH\n");
+        break;
+
+      case POP:
+        printf("POP\n");
         break;
 
       default:

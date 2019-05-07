@@ -14,8 +14,23 @@ struct cpu {
 
 // ALU operations
 enum alu_op {
-	ALU_MUL
+	ALU_MUL, // done
 	// Add more here
+  ALU_ADD, // done
+  ALU_DIV, // done
+  ALU_SUB, // done
+  ALU_INC,
+  ALU_DEC,
+  ALU_AND,
+  ALU_LD,
+  ALU_JMP,
+  ALU_CMP,
+  ALU_ST,
+  ALU_OR,
+  ALU_XOR,
+  ALU_SHL,
+  ALU_SHR,
+  ALU_INT,
 };
 
 // Instructions
