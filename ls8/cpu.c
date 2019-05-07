@@ -75,9 +75,13 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
   switch (op) {
     case ALU_MUL:
       // TODO
+      cpu->registers[regA] *= cpu->registers[regB];
       break;
 
     // TODO: implement more ALU ops
+    default:
+      printf("ALU default\n");
+      break;
   }
 }
 
@@ -148,6 +152,12 @@ void cpu_run(struct cpu *cpu)
         printf("%d\n", cpu->registers[operandA]);
         // printf("TESTL %d\n", cpu->ram[test]);
         // printf("%d\n", cpu->registers[cpu_ram_read(cpu, cpu->PC + 1)]);
+        break;
+
+      case MUL:
+        // printf("%d\n", cpu->registers[operandA]);
+        // printf("%d\n", cpu->registers[operandB]);
+        alu(cpu, ALU_MUL, operandA, operandB);
         break;
 
       default:
