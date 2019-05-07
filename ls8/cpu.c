@@ -1,31 +1,60 @@
 #include "cpu.h"
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define DATA_LEN 6
 
 /**
  * Load the binary bytes from a .ls8 source file into a RAM array
  */
-void cpu_load(struct cpu *cpu)
+void cpu_load(struct cpu *cpu, int argCount, char *filename)
 {
-  char data[DATA_LEN] = {
-    // From print8.ls8
-    0b10000010, // LDI R0,8
-    0b00000000,
-    0b00001000,
-    0b01000111, // PRN R0
-    0b00000000,
-    0b00000001  // HLT
-  };
+  // char data[DATA_LEN] = {
+  //   // From print8.ls8
+  //   0b10000010, // LDI R0,8
+  //   0b00000000,
+  //   0b00001000,
+  //   0b01000111, // PRN R0
+  //   0b00000000,
+  //   0b00000001  // HLT
+  // };
 
-  int address = 0;
+  // int address = 0;
 
-  for (int i = 0; i < DATA_LEN; i++) {
-    cpu->ram[address++] = data[i];
-  }
+  // for (int i = 0; i < DATA_LEN; i++) {
+  //   cpu->ram[address++] = data[i];
+  // }
 
   // TODO: Replace this with something less hard-coded
+  FILE *fp;
+  char line[1024];
+  int address = 0;
+
+  if (argCount != 2) {
+    fprintf(stderr, "usage: ls8 filename\n");
+  }
+
+  fp = fopen(filename, "r");
+
+  if (fp == NULL) {
+    fprintf(stderr, "cpu: error opening file\n");
+    exit(2);
+  }
+
+  while (fgets(line, 1024, fp) != NULL) {
+    char *endptr;
+
+    unsigned int val = strtoul(line, &endptr, 2);
+
+    if (endptr == line) {
+      continue;
+    }
+
+    cpu->ram[address] = val;
+    address++;
+  }
+  fclose(fp);
 }
 
 // RAM read
@@ -90,10 +119,9 @@ void cpu_run(struct cpu *cpu)
     unsigned char operandA = cpu_ram_read(cpu, (cpu->PC + 1));
     unsigned char operandB = cpu_ram_read(cpu, (cpu->PC + 2));
     unsigned int operands = current_inst >> 6;
-    // unsigned int test;
-    // unsigned int operands2 = current_inst >> 7;
     // 10 000010 -> LDI
     //   |
+    // 00000010
     // operand = 2
 
     // trace(cpu);
@@ -110,10 +138,9 @@ void cpu_run(struct cpu *cpu)
 
       case LDI:
         // printf("LDI\n");
-        cpu_ram_write(cpu, operandA, operandB);
+        // cpu_ram_write(cpu, operandA, operandB);
         cpu->registers[operandA] = operandB;
-        // test = cpu->PC;
-        // cpu->registers[cpu_ram_read(cpu, (cpu->PC + 1))] = cpu->registers[cpu_ram_read(cpu, (cpu->PC + 2))];
+        // cpu->registers[cpu_ram_read(cpu, (cpu->PC + 1))] = cpu_ram_read(cpu, (cpu->PC + 2));
         break;
 
       case PRN:
@@ -139,7 +166,7 @@ void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
   memset(cpu->registers, 0, sizeof(cpu->registers));
-  cpu->registers[8] = 0xF4;
+  cpu->registers[7] = 0xF4;
   cpu->PC = 0;
   memset(cpu->ram, 0, sizeof(cpu->ram));
 }
