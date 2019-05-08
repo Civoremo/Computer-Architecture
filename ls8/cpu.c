@@ -74,6 +74,14 @@ void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value) 
 void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
 {
   switch (op) {
+    case ALU_PUSH:
+      alu_Push(cpu, regA);
+      break;
+
+    case ALU_POP:
+    alu_Pop(cpu, regA);
+      break;
+
     case ALU_MUL:
       // TODO
       alu_Mult(cpu, regA, regB);
@@ -149,26 +157,23 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case LDI:
-        // cpu->registers[operandA] = operandB;
         inst_LDI(cpu, operandA, operandB);
         break;
 
       case PRN:
-        // printf("%d\n", cpu->registers[operandA]);
         inst_PRN(cpu, operandA);
         break;
 
       case MUL:
         alu(cpu, ALU_MUL, operandA, operandB);
-        // inst_MUL(cpu, operandA, operandB);
         break;
 
       case PUSH:
-        printf("PUSH\n");
+        alu(cpu, ALU_PUSH, operandA, operandB);
         break;
 
       case POP:
-        printf("POP\n");
+        alu(cpu, ALU_POP, operandA, operandB);
         break;
 
       default:
@@ -187,7 +192,7 @@ void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
   memset(cpu->registers, 0, sizeof(cpu->registers));
-  cpu->registers[7] = 0xF4;
+  cpu->registers[SP] = 0xF4;
   cpu->PC = 0;
   memset(cpu->ram, 0, sizeof(cpu->ram));
 }

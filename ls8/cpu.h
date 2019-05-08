@@ -16,6 +16,8 @@ struct cpu {
 enum alu_op {
 	ALU_MUL, // done
 	// Add more here
+  ALU_PUSH,
+  ALU_POP,
   ALU_ADD, // done
   ALU_DIV, // done
   ALU_SUB, // done
@@ -42,6 +44,7 @@ enum alu_op {
 #define HLT  0b00000001 // Halt the CPU (and exit the emulator).
 #define PRN  0b01000111 // Print numeric value stored in the given register.
 // TODO: more instructions here. These can be used in cpu_run().
+#define SP 7 // stack pointer
 #define ADD  0b10100000 // Add the value in two registers and store the result in registerA.
 #define AND  0b10101000 // Bitwise-AND the values in registerA and registerB, then store the result in registerA.
 #define CALL 0b01010000 // Calls a subroutine (function) at the address stored in the register.
