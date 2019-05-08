@@ -16,14 +16,14 @@ struct cpu {
 enum alu_op {
 	ALU_MUL, // done
 	// Add more here
-  ALU_PUSH,
-  ALU_POP,
+  ALU_PUSH, // done
+  ALU_POP, // done
   ALU_ADD, // done
   ALU_DIV, // done
   ALU_SUB, // done
   ALU_INC,
   ALU_DEC,
-  ALU_AND,
+  ALU_AND, // done
   ALU_LD,
   ALU_JMP,
   ALU_CMP,

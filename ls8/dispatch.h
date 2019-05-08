@@ -10,5 +10,6 @@ void alu_Mult(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Div(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Add(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Sub(struct cpu *cpu, unsigned char opA, unsigned char opB);
+void alu_And(struct cpu *cpu, unsigned char opA, unsigned char opB);
 
 #endif

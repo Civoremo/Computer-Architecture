@@ -34,7 +34,13 @@ void alu_Mult(struct cpu *cpu, unsigned char opA, unsigned char opB)
 
 void alu_Div(struct cpu *cpu, unsigned char opA, unsigned char opB)
 {
-  cpu->registers[opA] = cpu->registers[opA] / cpu->registers[opB];
+  if (cpu->registers[opB] != 0) {
+    // alu_Div(cpu, opA, opB);
+    cpu->registers[opA] = cpu->registers[opA] / cpu->registers[opB];
+  } else {
+    fprintf(stderr, "DIV: can't divide by 0\n");
+    exit(1);
+  }
 }
 
 void alu_Add(struct cpu *cpu, unsigned char opA, unsigned char opB)
@@ -45,4 +51,9 @@ void alu_Add(struct cpu *cpu, unsigned char opA, unsigned char opB)
 void alu_Sub(struct cpu *cpu, unsigned char opA, unsigned char opB)
 {
   cpu->registers[opA] -= cpu->registers[opB];
+}
+
+void alu_And(struct cpu *cpu, unsigned char opA, unsigned char opB)
+{
+  cpu->registers[opA] = cpu->registers[opA] & cpu->registers[opB];
 }

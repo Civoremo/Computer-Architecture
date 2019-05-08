@@ -73,6 +73,7 @@ void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value) 
  */
 void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
 {
+  // printf("%d\n", op);
   switch (op) {
     case ALU_PUSH:
       alu_Push(cpu, regA);
@@ -83,12 +84,11 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       break;
 
     case ALU_MUL:
-      // TODO
       alu_Mult(cpu, regA, regB);
       break;
 
     case ALU_DIV:
-      alu_Div(cpu, regA, regB);
+        alu_Div(cpu, regA, regB);
       break;
 
     case ALU_ADD:
@@ -96,7 +96,11 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       break;
 
     case ALU_SUB:
-      alu_Sub(cpu, regA, regB);
+        alu_Sub(cpu, regA, regB);
+      break;
+
+    case ALU_AND:
+      alu_And(cpu, regA, regB);
       break;
 
     // TODO: implement more ALU ops
@@ -174,6 +178,88 @@ void cpu_run(struct cpu *cpu)
 
       case POP:
         alu(cpu, ALU_POP, operandA, operandB);
+        break;
+
+      case ADD:
+        alu(cpu, ALU_ADD, operandA, operandB);
+        break;
+
+      case AND:
+        alu(cpu, ALU_AND, operandA, operandB);
+        break;
+
+      case CALL:
+        break;
+
+      case CMP:
+        break;
+
+      case DEC:
+        break;
+
+      case DIV:
+        alu(cpu, ALU_DIV, operandA, operandB);
+        break;
+
+      case INC:
+        break;
+
+      case IRET:
+        break;
+
+      case JEQ:
+        break;
+
+      case JGE:
+        break;
+
+      case JGT:
+        break;
+
+      case JLE:
+        break;
+
+      case JLT:
+        break;
+
+      case JMP:
+        break;
+
+      case JNE:
+        break;
+
+      case LD:
+        break;
+
+      case MOD:
+        break;
+
+      case NOP:
+        break;
+
+      case NOT:
+        break;
+
+      case OR:
+        break;
+
+      case RET:
+        break;
+
+      case SHL:
+        break;
+
+      case SHR:
+        break;
+
+      case ST:
+        break;
+
+      case SUB:
+        alu(cpu, ALU_SUB, operandA, operandB);
+        break;
+
+      case XOR:
         break;
 
       default:
