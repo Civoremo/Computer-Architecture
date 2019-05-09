@@ -103,6 +103,30 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       alu_And(cpu, regA, regB);
       break;
 
+    case ALU_INC:
+      alu_Inc(cpu, regA);
+      break;
+
+    case ALU_DEC:
+      alu_Dec(cpu, regA);
+      break;
+
+    case ALU_XOR:
+      alu_Xor(cpu, regA, regB);
+      break;
+
+    case ALU_OR:
+      alu_Or(cpu, regA, regB);
+      break;
+
+    case ALU_MOD:
+      alu_Mod(cpu, regA, regB);
+      break;
+
+    case ALU_NOT:
+      alu_Not(cpu, regA);
+      break;
+
     // TODO: implement more ALU ops
     default:
       printf("ALU default\n");
@@ -147,6 +171,9 @@ void cpu_run(struct cpu *cpu)
     unsigned char operandA = cpu_ram_read(cpu, (cpu->PC + 1));
     unsigned char operandB = cpu_ram_read(cpu, (cpu->PC + 2));
     unsigned int operands = current_inst >> 6;
+    unsigned char return_addr;
+    unsigned char call_addr;
+    unsigned char reg_num;
     // 10 000010 -> LDI
     //   |
     // 00000010
@@ -162,46 +189,64 @@ void cpu_run(struct cpu *cpu)
 
       case LDI:
         inst_LDI(cpu, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case PRN:
         inst_PRN(cpu, operandA);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case MUL:
         alu(cpu, ALU_MUL, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case PUSH:
         alu(cpu, ALU_PUSH, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case POP:
         alu(cpu, ALU_POP, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case ADD:
         alu(cpu, ALU_ADD, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case AND:
         alu(cpu, ALU_AND, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case CALL:
+        return_addr = cpu->PC + 2;
+        cpu->registers[SP]--;
+        cpu->ram[cpu->registers[SP]] = return_addr;
+        reg_num = cpu->ram[cpu->PC + 1];        
+        call_addr = cpu->registers[reg_num];
+        cpu->PC = call_addr;
         break;
 
       case CMP:
         break;
 
       case DEC:
+        alu(cpu, ALU_DEC, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case DIV:
         alu(cpu, ALU_DIV, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case INC:
+        alu(cpu, ALU_INC, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case IRET:
@@ -232,18 +277,27 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case MOD:
+        alu(cpu, ALU_MOD, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case NOP:
         break;
 
       case NOT:
+        alu(cpu, ALU_NOT, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case OR:
+        alu(cpu, ALU_OR, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case RET:
+        return_addr = cpu->ram[cpu->registers[SP]];
+        cpu->registers[SP]++;
+        cpu->PC = return_addr;
         break;
 
       case SHL:
@@ -257,9 +311,12 @@ void cpu_run(struct cpu *cpu)
 
       case SUB:
         alu(cpu, ALU_SUB, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case XOR:
+        alu(cpu, ALU_XOR, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       default:
@@ -267,7 +324,7 @@ void cpu_run(struct cpu *cpu)
         break;
     }
 
-    cpu->PC = cpu->PC + operands + 1;
+    // cpu->PC = cpu->PC + operands + 1;
   }
 }
 
