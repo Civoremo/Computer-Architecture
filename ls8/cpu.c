@@ -73,14 +73,22 @@ void cpu_ram_write(struct cpu *cpu, unsigned char address, unsigned char value) 
  */
 void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB)
 {
+  // printf("%d\n", op);
   switch (op) {
+    case ALU_PUSH:
+      alu_Push(cpu, regA);
+      break;
+
+    case ALU_POP:
+    alu_Pop(cpu, regA);
+      break;
+
     case ALU_MUL:
-      // TODO
       alu_Mult(cpu, regA, regB);
       break;
 
     case ALU_DIV:
-      alu_Div(cpu, regA, regB);
+        alu_Div(cpu, regA, regB);
       break;
 
     case ALU_ADD:
@@ -88,7 +96,47 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       break;
 
     case ALU_SUB:
-      alu_Sub(cpu, regA, regB);
+        alu_Sub(cpu, regA, regB);
+      break;
+
+    case ALU_AND:
+      alu_And(cpu, regA, regB);
+      break;
+
+    case ALU_INC:
+      alu_Inc(cpu, regA);
+      break;
+
+    case ALU_DEC:
+      alu_Dec(cpu, regA);
+      break;
+
+    case ALU_XOR:
+      alu_Xor(cpu, regA, regB);
+      break;
+
+    case ALU_OR:
+      alu_Or(cpu, regA, regB);
+      break;
+
+    case ALU_MOD:
+      alu_Mod(cpu, regA, regB);
+      break;
+
+    case ALU_NOT:
+      alu_Not(cpu, regA);
+      break;
+
+    case ALU_CMP:
+      alu_Cmp(cpu, regA, regB);
+      break;
+
+    case ALU_SHL:
+      cpu->registers[regA] = (cpu->registers[regA] << regB);
+      break;
+
+    case ALU_SHR:
+      cpu->registers[regA] = (cpu->registers[regA] >> regB);
       break;
 
     // TODO: implement more ALU ops
@@ -97,7 +145,6 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       break;
   }
 }
-
 
 void trace(struct cpu *cpu)
 {
@@ -124,59 +171,208 @@ void cpu_run(struct cpu *cpu)
 
   while (running) {
     // TODO
-    // 1. Get the value of the current instruction (in address PC).
-    // 2. Figure out how many operands this next instruction requires
-    // 3. Get the appropriate value(s) of the operands following this instruction
-    // 4. switch() over it to decide on a course of action.
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
 
-    unsigned int current_inst = cpu_ram_read(cpu, cpu->PC);
+    unsigned char current_inst = cpu_ram_read(cpu, cpu->PC);
     unsigned char operandA = cpu_ram_read(cpu, (cpu->PC + 1));
     unsigned char operandB = cpu_ram_read(cpu, (cpu->PC + 2));
-    unsigned int operands = current_inst >> 6;
-    // 10 000010 -> LDI
-    //   |
-    // 00000010
-    // operand = 2
+    unsigned char operands = current_inst >> 6;
+    unsigned char return_addr;
+    unsigned char call_addr;
+    unsigned char reg_num;
+    unsigned char temp; 
 
     // trace(cpu);
     
     switch (current_inst) {
       case HLT:
-        // printf("HALT\n");
         running = 0;
         break;
 
       case LDI:
-        // cpu->registers[operandA] = operandB;
         inst_LDI(cpu, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case PRN:
-        // printf("%d\n", cpu->registers[operandA]);
         inst_PRN(cpu, operandA);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case MUL:
         alu(cpu, ALU_MUL, operandA, operandB);
-        // inst_MUL(cpu, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case PUSH:
-        printf("PUSH\n");
+        alu(cpu, ALU_PUSH, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case POP:
-        printf("POP\n");
+        alu(cpu, ALU_POP, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case ADD:
+        alu(cpu, ALU_ADD, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case AND:
+        alu(cpu, ALU_AND, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case CALL:
+        return_addr = cpu->PC + 2;
+        cpu->registers[SP]--;
+        cpu->ram[cpu->registers[SP]] = return_addr;
+        reg_num = cpu->ram[cpu->PC + 1];        
+        call_addr = cpu->registers[reg_num];
+        cpu->PC = call_addr;
+        break;
+
+      case CMP:
+        alu(cpu, ALU_CMP, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case DEC:
+        alu(cpu, ALU_DEC, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case DIV:
+        alu(cpu, ALU_DIV, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case INC:
+        alu(cpu, ALU_INC, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case IRET:
+        break;
+
+      case JEQ:
+        if (cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case JGE:
+        if (cpu->FL == 2 || cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case JGT:
+        if (cpu->FL == 2) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case JLE:
+        if (cpu->FL == 4 || cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case JLT:
+        if (cpu->FL == 4) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case JMP:
+        cpu->PC = cpu->registers[operandA];
+        break;
+
+      case JNE:
+        temp = cpu->FL << 7;
+        temp = temp >> 7;
+
+        if (temp == 0) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
+        break;
+
+      case LD:
+        cpu->registers[operandA] = cpu->registers[operandB];
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case MOD:
+        alu(cpu, ALU_MOD, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case NOP:
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case NOT:
+        alu(cpu, ALU_NOT, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case OR:
+        alu(cpu, ALU_OR, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case RET:
+        return_addr = cpu->ram[cpu->registers[SP]];
+        cpu->registers[SP]++;
+        cpu->PC = return_addr;
+        break;
+
+      case SHL:
+        alu(cpu, ALU_SHL, operandA, operandB);
+        break;
+
+      case SHR:
+        alu(cpu, ALU_SHR, operandA, operandB);
+        break;
+
+      case ST:
+        cpu->ram[operandA] = cpu->ram[operandB];
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case SUB:
+        alu(cpu, ALU_SUB, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case XOR:
+        alu(cpu, ALU_XOR, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
+      case PRA:
+        printf("%c", cpu->ram[cpu->registers[operandA]]);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       default:
         printf("DEFAULT\n");
         break;
     }
-
-    cpu->PC = cpu->PC + operands + 1;
   }
 }
 
@@ -187,7 +383,8 @@ void cpu_init(struct cpu *cpu)
 {
   // TODO: Initialize the PC and other special registers
   memset(cpu->registers, 0, sizeof(cpu->registers));
-  cpu->registers[7] = 0xF4;
+  cpu->registers[SP] = 0xF4;
   cpu->PC = 0;
+  cpu->FL = 0;
   memset(cpu->ram, 0, sizeof(cpu->ram));
 }
