@@ -17,5 +17,6 @@ void alu_Xor(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Or(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Mod(struct cpu *cpu, unsigned char opA, unsigned char opB);
 void alu_Not(struct cpu *cpu, unsigned char opA);
+void alu_Cmp(struct cpu *cpu, unsigned char opA, unsigned char opB);
 
 #endif

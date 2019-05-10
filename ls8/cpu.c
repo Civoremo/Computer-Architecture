@@ -127,13 +127,24 @@ void alu(struct cpu *cpu, enum alu_op op, unsigned char regA, unsigned char regB
       alu_Not(cpu, regA);
       break;
 
+    case ALU_CMP:
+      alu_Cmp(cpu, regA, regB);
+      break;
+
+    case ALU_SHL:
+      cpu->registers[regA] = (cpu->registers[regA] << regB);
+      break;
+
+    case ALU_SHR:
+      cpu->registers[regA] = (cpu->registers[regA] >> regB);
+      break;
+
     // TODO: implement more ALU ops
     default:
       printf("ALU default\n");
       break;
   }
 }
-
 
 void trace(struct cpu *cpu)
 {
@@ -160,30 +171,20 @@ void cpu_run(struct cpu *cpu)
 
   while (running) {
     // TODO
-    // 1. Get the value of the current instruction (in address PC).
-    // 2. Figure out how many operands this next instruction requires
-    // 3. Get the appropriate value(s) of the operands following this instruction
-    // 4. switch() over it to decide on a course of action.
-    // 5. Do whatever the instruction should do according to the spec.
-    // 6. Move the PC to the next instruction.
 
-    unsigned int current_inst = cpu_ram_read(cpu, cpu->PC);
+    unsigned char current_inst = cpu_ram_read(cpu, cpu->PC);
     unsigned char operandA = cpu_ram_read(cpu, (cpu->PC + 1));
     unsigned char operandB = cpu_ram_read(cpu, (cpu->PC + 2));
-    unsigned int operands = current_inst >> 6;
+    unsigned char operands = current_inst >> 6;
     unsigned char return_addr;
     unsigned char call_addr;
     unsigned char reg_num;
-    // 10 000010 -> LDI
-    //   |
-    // 00000010
-    // operand = 2
+    unsigned char temp; 
 
     // trace(cpu);
     
     switch (current_inst) {
       case HLT:
-        // printf("HALT\n");
         running = 0;
         break;
 
@@ -232,6 +233,8 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case CMP:
+        alu(cpu, ALU_CMP, operandA, operandB);
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case DEC:
@@ -253,27 +256,64 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case JEQ:
+        if (cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case JGE:
+        if (cpu->FL == 2 || cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case JGT:
+        if (cpu->FL == 2) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case JLE:
+        if (cpu->FL == 4 || cpu->FL == 1) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case JLT:
+        if (cpu->FL == 4) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case JMP:
+        cpu->PC = cpu->registers[operandA];
         break;
 
       case JNE:
+        temp = cpu->FL << 7;
+        temp = temp >> 7;
+
+        if (temp == 0) {
+          cpu->PC = cpu->registers[operandA];
+        } else {
+          cpu->PC = cpu->PC + operands + 1;
+        }
         break;
 
       case LD:
+        cpu->registers[operandA] = cpu->registers[operandB];
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case MOD:
@@ -282,6 +322,7 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case NOP:
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case NOT:
@@ -301,12 +342,16 @@ void cpu_run(struct cpu *cpu)
         break;
 
       case SHL:
+        alu(cpu, ALU_SHL, operandA, operandB);
         break;
 
       case SHR:
+        alu(cpu, ALU_SHR, operandA, operandB);
         break;
 
       case ST:
+        cpu->ram[operandA] = cpu->ram[operandB];
+        cpu->PC = cpu->PC + operands + 1;
         break;
 
       case SUB:
@@ -319,12 +364,15 @@ void cpu_run(struct cpu *cpu)
         cpu->PC = cpu->PC + operands + 1;
         break;
 
+      case PRA:
+        printf("%c", cpu->ram[cpu->registers[operandA]]);
+        cpu->PC = cpu->PC + operands + 1;
+        break;
+
       default:
         printf("DEFAULT\n");
         break;
     }
-
-    // cpu->PC = cpu->PC + operands + 1;
   }
 }
 
@@ -337,5 +385,6 @@ void cpu_init(struct cpu *cpu)
   memset(cpu->registers, 0, sizeof(cpu->registers));
   cpu->registers[SP] = 0xF4;
   cpu->PC = 0;
+  cpu->FL = 0;
   memset(cpu->ram, 0, sizeof(cpu->ram));
 }

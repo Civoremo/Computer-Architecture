@@ -87,3 +87,20 @@ void alu_Not(struct cpu *cpu, unsigned char opA)
 {
   cpu->registers[opA] = ~cpu->registers[opA];
 }
+
+void alu_Cmp(struct cpu *cpu, unsigned char opA, unsigned char opB)
+{
+  unsigned char tempFL = 0;
+  if (cpu->registers[opA] == cpu->registers[opB]) {
+    // printf("E\n");
+    cpu->FL = tempFL | 0b00000001;
+  } else if (cpu->registers[opA] < cpu->registers[opB]) {
+    // printf("L\n");
+    cpu->FL = tempFL | 0b00000100;
+  } else if (cpu->registers[opA] > cpu->registers[opB]) {
+    // printf("G\n");
+    cpu->FL = tempFL | 0b00000010;
+  } else {
+    cpu->FL = tempFL;
+  }
+}
